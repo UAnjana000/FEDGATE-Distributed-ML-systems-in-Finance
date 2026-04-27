@@ -1,0 +1,94 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fedrisk}
+      POSTGRES_USER: ${POSTGRES_USER:-fedrisk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fedrisk}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fedrisk} -d ${POSTGRES_DB:-fedrisk}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  risk-engine:
+    build:
+      context: .
+      dockerfile: services/risk-engine/Dockerfile
+    env_file: [.env]
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./artifacts:/app/artifacts
+
+  fl-orchestrator:
+    build:
+      context: .
+      dockerfile: services/fl-orchestrator/Dockerfile
+    env_file: [.env]
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./artifacts:/app/artifacts
+
+  alert-service:
+    build:
+      context: .
+      dockerfile: services/alert-service/Dockerfile
+    env_file: [.env]
+    ports:
+      - "8003:8003"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    env_file: [.env]
+    ports:
+      - "8000:8000"
+    depends_on:
+      risk-engine:
+        condition: service_started
+      fl-orchestrator:
+        condition: service_started
+      alert-service:
+        condition: service_started
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      api-gateway:
+        condition: service_started
+
+volumes:
+  postgres_data:

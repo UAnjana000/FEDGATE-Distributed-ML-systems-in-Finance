@@ -205,3 +205,13 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Monorepo frontend artifacts
+apps/web/node_modules/
+apps/web/dist/
+
+# Runtime and experiment outputs
+artifacts/
+
+# Docker and local overrides
+docker-compose.override.yml

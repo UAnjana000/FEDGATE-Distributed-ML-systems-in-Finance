@@ -1,0 +1,53 @@
+:root {
+  font-family: Inter, Arial, sans-serif;
+  color: #d8deff;
+  background: #0c1022;
+}
+
+body {
+  margin: 0;
+}
+
+.container {
+  padding: 20px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.card {
+  padding: 12px;
+  border: 1px solid #2b355e;
+  border-radius: 8px;
+  background: #121834;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 8px;
+  border-bottom: 1px solid #2b355e;
+  text-align: left;
+}
+
+ul {
+  padding-left: 20px;
+}
+
+.error {
+  color: #ff6b6b;
+}

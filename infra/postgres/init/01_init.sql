@@ -1,0 +1,37 @@
+CREATE TABLE IF NOT EXISTS borrowers (
+  borrower_id VARCHAR(64) PRIMARY KEY,
+  monthly_income DOUBLE PRECISION NOT NULL,
+  existing_emi DOUBLE PRECISION NOT NULL,
+  requested_loan_emi DOUBLE PRECISION NOT NULL,
+  debt_outstanding DOUBLE PRECISION NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS risk_snapshots (
+  id SERIAL PRIMARY KEY,
+  borrower_id VARCHAR(64) NOT NULL,
+  risk_probability DOUBLE PRECISION NOT NULL,
+  foir DOUBLE PRECISION NOT NULL,
+  debt_burden DOUBLE PRECISION NOT NULL,
+  distress_flag BOOLEAN NOT NULL,
+  severity VARCHAR(16) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS alerts (
+  id SERIAL PRIMARY KEY,
+  borrower_id VARCHAR(64) NOT NULL,
+  severity VARCHAR(16) NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS federated_rounds (
+  id SERIAL PRIMARY KEY,
+  run_id VARCHAR(64) NOT NULL,
+  round_count INTEGER NOT NULL,
+  num_clients INTEGER NOT NULL,
+  accuracy DOUBLE PRECISION,
+  loss DOUBLE PRECISION,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
