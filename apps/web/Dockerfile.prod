@@ -1,0 +1,28 @@
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY apps/web/package.json /app/package.json
+COPY apps/web/package-lock.json /app/package-lock.json
+RUN npm ci
+
+COPY apps/web /app
+
+ARG VITE_API_BASE
+ENV VITE_API_BASE=${VITE_API_BASE}
+
+RUN npm run build
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY apps/web/package.json /app/package.json
+COPY apps/web/package-lock.json /app/package-lock.json
+RUN npm ci
+
+COPY --from=build /app/dist /app/dist
+COPY apps/web/vite.config.ts /app/vite.config.ts
+
+EXPOSE 5173
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "5173"]

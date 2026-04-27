@@ -1,7 +1,9 @@
+import os
 from datetime import datetime
 
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from services.common.logging import configure_logging
 from services.common.schemas import BorrowerIn
@@ -9,14 +11,35 @@ from services.common.schemas import BorrowerIn
 configure_logging("api-gateway")
 app = FastAPI(title="API Gateway", version="0.1.0")
 
-RISK_ENGINE_URL = "http://risk-engine:8001"
-ALERT_SERVICE_URL = "http://alert-service:8003"
-FL_ORCHESTRATOR_URL = "http://fl-orchestrator:8002"
+RISK_ENGINE_URL = os.getenv("RISK_ENGINE_URL", "http://risk-engine:8001")
+ALERT_SERVICE_URL = os.getenv("ALERT_SERVICE_URL", "http://alert-service:8003")
+FL_ORCHESTRATOR_URL = os.getenv("FL_ORCHESTRATOR_URL", "http://fl-orchestrator:8002")
+
+cors_allow_origins = os.getenv("CORS_ALLOW_ORIGINS", "*")
+allow_origins = ["*"] if cors_allow_origins.strip() == "*" else [
+    origin.strip() for origin in cors_allow_origins.split(",") if origin.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allow_origins,
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok", "service": "api-gateway"}
+
+
+@app.get("/")
+async def root() -> dict[str, str]:
+    return {
+        "status": "ok",
+        "service": "api-gateway",
+        "message": "API gateway is running. Visit /docs for interactive API docs.",
+    }
 
 
 @app.post("/borrowers/score")
